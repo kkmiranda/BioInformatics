@@ -152,10 +152,6 @@ class Pathway:
     def unifyBlocks(self):
         # Bring together Block properties into Pathway properties
         if len(self.blox) == 1: # pathway just one gene long
-            print("YOYOYOY\n\n")
-
-            for blk in self.blox:
-                print(blk.srcNodes, "\n", blk.tgtNodes, "\n", blk.edges)
 
             self.sourceNodes = self.blox[0].srcNodes
             self.targetNodes = self.blox[0].tgtNodes
@@ -254,8 +250,7 @@ class Gph:
                 g.add_edge(i,i)
                 self.singletons.append((i,i))
             
-        plot(g)
-        #print(self.node2gene)
+        # plot(g) #comment in if you want this graph plotted
         
 
         for s in self.sourceNodes:
@@ -264,11 +259,11 @@ class Gph:
                 
                 for pathway in a:
                     self.listOfPathways.append(pathway)
-        
+  
+
         for edge in self.singletons:
             self.listOfPathways.append(edge)
 
 if __name__=="__main__":
-    Gph("K01812 K00040 (K01686,K08323) K00874 (K01625,K17463)")
-    #now just work on the rust function
+    Gph("(K01497,K14652) (K01498 K00082,K11752) (K22912,K20860,K20861,K20862,K21063,K21064)\n(K02858,K14652)\nK00794 K00793 (K20884 K22949,K11753)\nK01497 K14654 K14655\nK02858\nK00794 K00793 K00861 K00953")    #now just work on the rust function
     pass

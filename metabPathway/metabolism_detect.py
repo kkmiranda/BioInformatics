@@ -1,16 +1,17 @@
 """
 Using Floor function.
 """
-
+from lib2to3.pytree import BasePattern
+import os
 from copyreg import pickle
 from math import ceil
 import pickle
 from definition_parser import *
 import json
 
-BASEPATH = "/Users/khashiffm/Documents/Research/Cathylab/metagenomes/nifH/masterdata_17May2021"
-MAGNAME_PATH = "geneFunctionTables/goodBins/tatoosh_MAG_names.txt"
-MASTERDATA_PATH = "geneFunctionTables/goodBins/tatoosh_masterdata.txt"
+BASEPATH = os.getcwd()
+MAGNAME_PATH = "assets/tatoosh_MAG_names.txt"
+MASTERDATA_PATH = "assets/tatoosh_masterdata.txt"
 META_DEF = {
     "Assimilatory_Sulfur_Reduction": Gph(Asr),
     "Dissimilatory_Sulfur_Reduction": Gph(Dsr),
@@ -136,18 +137,18 @@ class MetaDetect:
         self.output.insert(0,header)
 
         if self.misc == True:
-            filename = f"{BASEPATH}/heatmapGen/trail_misc_table_{THRESHOLD}.txt"
+            filename = f"{BASEPATH}/trail_misc_table_{THRESHOLD}.txt"
         else:
-            filename = f"{BASEPATH}/heatmapGen/output_{THRESHOLD}.txt"
+            filename = f"{BASEPATH}/output_{THRESHOLD}.txt"
 
         with open(filename, 'w') as t:
             t.write("\n".join(self.output))
 
 
 if __name__=="__main__":
-    # MetaDetect(META_DEF, MAGNAME_PATH, MASTERDATA_PATH)
+    # # MetaDetect(META_DEF, MAGNAME_PATH, MASTERDATA_PATH)
 
-    with open(f'{BASEPATH}/heatmapGen/pathwayAlgorithm/all_KEGG_defs.json','r') as t:
+    with open(f'{BASEPATH}/assets/all_KEGG_defs.json','r') as t:
         data = json.load(t)
 
     print("\n\n\n\n\n\n\n")
@@ -163,22 +164,20 @@ if __name__=="__main__":
                 try:
                     modDesc = module + "_" + data[category][path]['modules'][module]['name'].replace(" ","_")
 
-                    defDict[f"{catName}__{pathDesc}__{module}"] = Gph(data[category][path]['modules'][module]['definition'])
+                    defDict[f"{catName}__{pathDesc}__{modDesc}"] = Gph(data[category][path]['modules'][module]['definition'])
                 except:
                     print("YOOOO\n",module, data[category][path]['modules'][module])
                     pass # for Modules with empty definitions
     
     print("\t".join(defDict.keys()))
 
-    # with open(f"{BASEPATH}/heatmapGen/pathwayAlgorithm/KEGG_def_pickle", "wb") as def_pickle:
+    # with open(f"{BASEPATH}/assets/KEGG_def_pickle", "wb") as def_pickle:
     #     pickle.dump(defDict, def_pickle)
 
     ###########
-    # Loads a dictionary of "Module name": Gph(KEGG Def) that has been prepickled
-    # and runs the Meta Detect Algorithm on it.
-    # with open(f"{BASEPATH}/heatmapGen/pathwayAlgorithm/KEGG_def_pickle", "rb") as u:
-    #     new_dict = pickle.load(u)
-    
-    # print(len(new_dict.keys()))
+    # # Loads a dictionary of "Module name": Gph(KEGG Def) that has been prepickled
+    # # and runs the Meta Detect Algorithm on it.
+    with open(f"{BASEPATH}/assets/KEGG_def_pickle", "rb") as u:
+        new_dict = pickle.load(u)
 
-    # MetaDetect(new_dict, MAGNAME_PATH, MASTERDATA_PATH)
+    MetaDetect(new_dict, MAGNAME_PATH, MASTERDATA_PATH)

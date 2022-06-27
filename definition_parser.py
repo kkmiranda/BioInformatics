@@ -8,6 +8,8 @@ I would recommend verifying the network by plotting (unhash the plot(g)
 line in genGraph() in the Gph Object). But when running, hash out the plot(g) 
 function because it really increases runtime
 
+Ignores singleton pathways.
+
 Python 3.9.9
 Author: Khashiff Miranda (kkmiranda.github.io)
 """
@@ -66,7 +68,7 @@ class Block:
                 elif input[j] == '+':
                     tgt = False # edge found, is not a target node
                     j += 1
-                    
+
                     self.edges.append((call,input[j]))
                     self.genes.add(input[j])
                     
@@ -150,15 +152,7 @@ class Pathway:
 
     # CONSOLIDATION FX
     def unifyBlocks(self):
-        # Bring together Block properties into Pathway properties
-        if len(self.blox) == 1: # pathway just one gene long
-
-            self.sourceNodes = self.blox[0].srcNodes
-            self.targetNodes = self.blox[0].tgtNodes
-            self.edges.add((self.blox[0].srcNodes[0],self.blox[0].tgtNodes[0]))
-            self.genes.add(self.blox[0].srcNodes[0])
-            
-
+        # Bring together Block properties into Pathway properties            
 
         for i in range(len(self.blox)):
             if i == 0:
@@ -250,7 +244,8 @@ class Gph:
                 g.add_edge(i,i)
                 self.singletons.append((i,i))
             
-        # plot(g) #comment in if you want this graph plotted
+        #plot(g)
+        #print(self.node2gene)
         
 
         for s in self.sourceNodes:
@@ -258,12 +253,15 @@ class Gph:
                 a = g.get_all_simple_paths(self.gene2node[s],self.gene2node[t])
                 
                 for pathway in a:
-                    self.listOfPathways.append(pathway)
-  
-
+                    if len(pathway)>1:
+                        self.listOfPathways.append(pathway)
+                    else:
+                        print("suh",pathway)
+        
         for edge in self.singletons:
             self.listOfPathways.append(edge)
 
 if __name__=="__main__":
-    Gph("(K01497,K14652) (K01498 K00082,K11752) (K22912,K20860,K20861,K20862,K21063,K21064)\n(K02858,K14652)\nK00794 K00793 (K20884 K22949,K11753)\nK01497 K14654 K14655\nK02858\nK00794 K00793 K00861 K00953")    #now just work on the rust function
+    Gph(cob_aerobic)
+    #now just work on the rust function
     pass

@@ -1,17 +1,16 @@
 """
 Using Floor function.
 """
-from lib2to3.pytree import BasePattern
-import os
+
 from copyreg import pickle
 from math import ceil
 import pickle
 from definition_parser import *
 import json
 
-BASEPATH = os.getcwd()
-MAGNAME_PATH = "assets/tatoosh_MAG_names.txt"
-MASTERDATA_PATH = "assets/tatoosh_masterdata.txt"
+BASEPATH = "/Users/khashiffm/Documents/Research/Cathylab/metagenomes/nifH/masterdata_17May2021"
+MAGNAME_PATH = "geneFunctionTables/3Jun2022/tatoosh_MAG_names.txt"
+MASTERDATA_PATH = "geneFunctionTables/3Jun2022/tatoosh_masterdata.txt"
 META_DEF = {
     "Assimilatory_Sulfur_Reduction": Gph(Asr),
     "Dissimilatory_Sulfur_Reduction": Gph(Dsr),
@@ -30,7 +29,7 @@ META_DEF = {
     "Vit_B12_Anaerobic": Gph(cob_anaerobic)
     }
 
-THRESHOLD = 0.25 # fraction allowed to go missing
+THRESHOLD = 0.33 # fraction allowed to go missing
 
 class MetaDetect:
     def __init__(self,  metabDef: dict, MAGlist, masterdata, misclist=True) -> None:
@@ -95,13 +94,17 @@ class MetaDetect:
                 for pathway in self.graphs[gph].listOfPathways:
                     ignore = False
                     pathOutput = []
-                    threshold = math.floor(len(pathway)*THRESHOLD) #ALT
+                    pwlen = len(pathway)
+                    
+                    threshold = math.floor(pwlen*THRESHOLD)
+                    if pwlen < math.floor(1/THRESHOLD)+1:
+                        threshold+=1 # Gives smaller pathways a fighting chance
+
                     missing = 0
                     count = 0
                     for node in pathway:
                         count += 1
                         if self.graphs[gph].node2gene[node] in self.mData[mag]:
-                            
                             pass
                         else:
                             # print(node_to_gene[node])
@@ -111,7 +114,7 @@ class MetaDetect:
                                 
                     
                     if (ignore == False):
-                        pathOutput = [mag, str(threshold), str(len(pathway)), gph, str(missing), str(count), "-".join([self.graphs[gph].node2gene[node] for node in pathway])]
+                        pathOutput = [mag, str(threshold), str(pwlen), gph, str(missing), str(count), "-".join([self.graphs[gph].node2gene[node] for node in pathway])]
                         if self.misc == False:
                             self.output.append("\t".join(pathOutput))
                         break
@@ -137,47 +140,49 @@ class MetaDetect:
         self.output.insert(0,header)
 
         if self.misc == True:
-            filename = f"{BASEPATH}/trail_misc_table_{THRESHOLD}.txt"
+            filename = f"{BASEPATH}/heatmapGen/trail_misc_table_{THRESHOLD}_mod.txt"
         else:
-            filename = f"{BASEPATH}/output_{THRESHOLD}.txt"
+            filename = f"{BASEPATH}/heatmapGen/output_{THRESHOLD}_mod.txt"
 
         with open(filename, 'w') as t:
             t.write("\n".join(self.output))
 
 
 if __name__=="__main__":
-    # # MetaDetect(META_DEF, MAGNAME_PATH, MASTERDATA_PATH)
+    MetaDetect(META_DEF, MAGNAME_PATH, MASTERDATA_PATH, False)
 
-    with open(f'{BASEPATH}/assets/all_KEGG_defs.json','r') as t:
-        data = json.load(t)
+    # with open(f'{BASEPATH}/heatmapGen/pathwayAlgorithm/all_KEGG_defs.json','r') as t:
+    #     data = json.load(t)
 
-    print("\n\n\n\n\n\n\n")
+    # print("\n\n\n\n\n\n\n")
 
-    # pickling Graph db of all KEGG defs
-    defDict = dict()
-    for category in data.keys():
-        catName = category.replace(" ","_")
-        for path in data[category]:
-            pathDesc = path+"_"+data[category][path]['name'].replace(" ","_")
+    # # pickling Graph db of all KEGG defs
+    # defDict = dict()
+    # for category in data.keys():
+    #     catName = category.replace(" ","_")
+    #     for path in data[category]:
+    #         pathDesc = path+"_"+data[category][path]['name'].replace(" ","_")
 
-            for module in data[category][path]['modules']:
-                try:
-                    modDesc = module + "_" + data[category][path]['modules'][module]['name'].replace(" ","_")
+    #         for module in data[category][path]['modules']:
+    #             try:
+    #                 modDesc = module + "_" + data[category][path]['modules'][module]['name'].replace(" ","_")
 
-                    defDict[f"{catName}__{pathDesc}__{modDesc}"] = Gph(data[category][path]['modules'][module]['definition'])
-                except:
-                    print("YOOOO\n",module, data[category][path]['modules'][module])
-                    pass # for Modules with empty definitions
+    #                 defDict[f"{catName}__{pathDesc}__{module}"] = Gph(data[category][path]['modules'][module]['definition'])
+    #             except:
+    #                 print("YOOOO\n",module, data[category][path]['modules'][module])
+    #                 pass # for Modules with empty definitions
     
-    print("\t".join(defDict.keys()))
+    # print("\t".join(defDict.keys()))
 
-    # with open(f"{BASEPATH}/assets/KEGG_def_pickle", "wb") as def_pickle:
+    # with open(f"{BASEPATH}/heatmapGen/pathwayAlgorithm/KEGG_def_pickle", "wb") as def_pickle:
     #     pickle.dump(defDict, def_pickle)
 
     ###########
-    # # Loads a dictionary of "Module name": Gph(KEGG Def) that has been prepickled
-    # # and runs the Meta Detect Algorithm on it.
-    with open(f"{BASEPATH}/assets/KEGG_def_pickle", "rb") as u:
-        new_dict = pickle.load(u)
+    # Loads a dictionary of "Module name": Gph(KEGG Def) that has been prepickled
+    # and runs the Meta Detect Algorithm on it.
+    # with open(f"{BASEPATH}/heatmapGen/pathwayAlgorithm/KEGG_def_pickle", "rb") as u:
+    #     new_dict = pickle.load(u)
+    
+    # print(len(new_dict.keys()))
 
-    MetaDetect(new_dict, MAGNAME_PATH, MASTERDATA_PATH)
+    # MetaDetect(new_dict, MAGNAME_PATH, MASTERDATA_PATH)

@@ -7,31 +7,12 @@ from math import ceil
 import pickle
 from definition_parser import *
 import json
+from fig3KEGGdefinitions import *
+import argparse, sys
 
-BASEPATH = "/Users/khashiffm/Documents/Research/Cathylab/metagenomes/nifH/masterdata_17May2021"
-MAGNAME_PATH = "geneFunctionTables/3Jun2022/tatoosh_MAG_names.txt"
-MASTERDATA_PATH = "geneFunctionTables/3Jun2022/tatoosh_masterdata.txt"
-META_DEF = {
-    "Assimilatory_Sulfur_Reduction": Gph(Asr),
-    "Dissimilatory_Sulfur_Reduction": Gph(Dsr),
-    "Thiosulfate_Oxidation": Gph(TsO),
-    "Nitrogen_Fixation": Gph(Nif),
-    "Assimilatory_Nitrate_Reduction": Gph(Anr),
-    "Dissimilatory_Nitrate_Reduction": Gph(Dnr),
-    "Denitrification": Gph(Denitrification),
-    "Nitrification": Gph(Nitrification),
-    "Comammox": Gph(coammox),
-    "Anammox": Gph(anammox),
-    "Vit_B1": Gph(thiamin),
-    "Vit_B2":Gph(ribo),
-    "Vit_B7":Gph(biotin),
-    "Vit_B12_Aerobic":Gph(cob_aerobic),
-    "Vit_B12_Anaerobic": Gph(cob_anaerobic)
-    }
 
-THRESHOLD = 0.33 # fraction allowed to go missing
 
-class MetaDetect:
+class NAMeD:
     def __init__(self,  metabDef: dict, MAGlist, masterdata, misclist=True) -> None:
         self.misc = misclist # generate misc table (TRUE) or output detail (FALSE)
         self.MAGNames = self.loadMagNames(MAGlist)
@@ -50,7 +31,7 @@ class MetaDetect:
         print("\n~~~~~  LOADING MAG Names  ~~~~~")
         # Takes in string of path of MAG names
         mag_list = {}
-        with open(f"{BASEPATH}/{MAGlist}",'r') as m:
+        with open(f"{MAGlist}",'r') as m:
             m = m.readlines()
             for mag in m:
                 mag_list[mag.strip()] = []
@@ -62,7 +43,7 @@ class MetaDetect:
         # Only takes in KOFam calls.
 
         mag_gene_dict = {}
-        with open(f"{BASEPATH}/{masterdata}", 'r') as g:
+        with open(f"{masterdata}", 'r') as g:
             g = g.readlines()
             for line in g:
                 line = line.split()
@@ -128,8 +109,6 @@ class MetaDetect:
             if self.misc==True:
                 self.output.append("\t".join(magOutput))    
                 
-
-    
     def printOutput(self):
         print("\n~~~~~  PRINTING OUTPUT  ~~~~~")
 
@@ -140,49 +119,76 @@ class MetaDetect:
         self.output.insert(0,header)
 
         if self.misc == True:
-            filename = f"{BASEPATH}/heatmapGen/trail_misc_table_{THRESHOLD}_mod.txt"
+            filename = f"misc_table_{THRESHOLD}_mod.txt"
         else:
-            filename = f"{BASEPATH}/heatmapGen/output_{THRESHOLD}_mod.txt"
+            filename = f"outputLog_{THRESHOLD}.txt"
 
         with open(filename, 'w') as t:
             t.write("\n".join(self.output))
 
 
 if __name__=="__main__":
-    MetaDetect(META_DEF, MAGNAME_PATH, MASTERDATA_PATH, False)
+    helpText = "Network Algorithm for Metabolic Detection (NAMeD)\n\nThis algorithm takes a masterdata sheet of genes from your genomes and detects from a list of metabolisms whether your genomes have any of them present. It takes the KEGG definition of each metabolism and represents it as a network of nodes - with starting and target nodes. If it's possible to get from the starting to the target node of your genome, then the metabolism is present. Make sure to make use of the -t flag to control the percentage of the pathway you'll allow missing."
 
-    # with open(f'{BASEPATH}/heatmapGen/pathwayAlgorithm/all_KEGG_defs.json','r') as t:
-    #     data = json.load(t)
+    # DEFAULTS
+    MAGNAME_PATH = "./assets/tatoosh_MAG_names.txt"
 
-    # print("\n\n\n\n\n\n\n")
+    # Parsing args
+    parser = argparse.ArgumentParser(description=helpText)
+    parser.add_argument("-i","--input",required=True)
+    parser.add_argument("-t","--threshold",default=0.33,type=float)
+    parser.add_argument("-m", "--mode", default='single', choices=['single','multi','all'])
+    parser.add_argument("-d", "--definition")
+    args = parser.parse_args()
+    doIt = True
 
-    # # pickling Graph db of all KEGG defs
-    # defDict = dict()
-    # for category in data.keys():
-    #     catName = category.replace(" ","_")
-    #     for path in data[category]:
-    #         pathDesc = path+"_"+data[category][path]['name'].replace(" ","_")
+    # SELECTING INPUT FILE
+    if args.input:
+        MASTERDATA_PATH = args.input
+    else:
+        print("INPUT FILE ERROR: Check input file path")
 
-    #         for module in data[category][path]['modules']:
-    #             try:
-    #                 modDesc = module + "_" + data[category][path]['modules'][module]['name'].replace(" ","_")
+    # SETTING DICTIONARY OF METABOLISMS
+    if args.definition: # not default
+        if args.mode=='single':
+            try: 
+                META_DEF = {"Def1": Gph(args.definition)}
+            except:
+                print("Input Error: Verify input string is a KEGG definition")
+                doIt = False
+        elif args.mode=='all':
+            with open(f"assets/KEGG_def_pickle", "rb") as u:
+                META_DEF = pickle.load(u)      
 
-    #                 defDict[f"{catName}__{pathDesc}__{module}"] = Gph(data[category][path]['modules'][module]['definition'])
-    #             except:
-    #                 print("YOOOO\n",module, data[category][path]['modules'][module])
-    #                 pass # for Modules with empty definitions
-    
-    # print("\t".join(defDict.keys()))
+            print("\n\nThis might take a while\n\n") 
 
-    # with open(f"{BASEPATH}/heatmapGen/pathwayAlgorithm/KEGG_def_pickle", "wb") as def_pickle:
-    #     pickle.dump(defDict, def_pickle)
+    else:               # default
+        if args.mode:
+            if args.mode=='single':
+                META_DEF = {"Denitrification": Gph(Denitrification)}
+            elif args.mode=='multi':
+                META_DEF = defaultMultiDef
+            else: # args.mode=='all'
+                # Loads a dictionary of "Module name": Gph(KEGG Def) that has been prepickled
+                # and runs the Meta Detect Algorithm on it.
+                with open(f"assets/KEGG_def_pickle", "rb") as u:
+                    META_DEF = pickle.load(u)      
 
-    ###########
-    # Loads a dictionary of "Module name": Gph(KEGG Def) that has been prepickled
-    # and runs the Meta Detect Algorithm on it.
-    # with open(f"{BASEPATH}/heatmapGen/pathwayAlgorithm/KEGG_def_pickle", "rb") as u:
-    #     new_dict = pickle.load(u)
-    
-    # print(len(new_dict.keys()))
+                print("\n\nThis might take a while\n\n") 
+        else:
+            META_DEF = {"Denitrification": Gph(Denitrification)}
 
-    # MetaDetect(new_dict, MAGNAME_PATH, MASTERDATA_PATH)
+    # SETTING THRESHOLD
+
+    if args.threshold and args.threshold<=1 and args.threshold >=0:
+        THRESHOLD=args.threshold
+    else:
+        THRESHOLD = 0.33 # DEFAULT
+
+    print(f"\nUSING {THRESHOLD} AS THRESHOLD")
+        
+    # RUNNING CODE
+    if doIt == True:
+        NAMeD(META_DEF, MAGNAME_PATH, MASTERDATA_PATH)
+    else:
+        pass

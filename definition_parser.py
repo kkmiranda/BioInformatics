@@ -18,8 +18,6 @@ Author: Khashiff Miranda (kkmiranda.github.io)
 import re
 from platform import node
 from igraph import *
-from KEGG_definitions import *
-
 
 class Block:
     def __init__(self, input) -> None:
@@ -246,7 +244,6 @@ class Gph:
             
         #plot(g)
         #print(self.node2gene)
-        
 
         for s in self.sourceNodes:
             for t in self.targetNodes:
@@ -262,6 +259,4 @@ class Gph:
             self.listOfPathways.append(edge)
 
 if __name__=="__main__":
-    Gph(cob_aerobic)
-    #now just work on the rust function
     pass

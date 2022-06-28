@@ -9,6 +9,8 @@ in defintion_parser.py
 Author: Khashiff Miranda (kkmiranda.github.io)
 """
 
+from definition_parser import *
+
 # SULFUR METABOLISMS (https://www.genome.jp/pathway/map00920)
 Asr = "(K13811,K00958+K00860,K00955+K00957,K00956+K00957+K00860) K00390 (K00380+K00381,K00392)" # M00176
 Dsr = "K00958 (K00394+K00395) (K11180+K11181)" # M00596
@@ -43,3 +45,20 @@ biotin = "K00652 ((K00833,K19563) K01935,K19562) K01012"
 cob_aerobic = "(K02303,K13542) (K03394,K13540) K02229 (K05934,K13540,K13541) K05936 K02228 K05895 K00595 K06042 K02224 K02230+K09882+K09883"
 cob_anaerobic = "(K02302,(K02303,K13542) (K02304,K24866)) (K02190,K03795,K22011) K03394 (K05934,K13541,K21479) K05936 (K02189,K13541) K02188 K05895 (K02191 K03399,K00595) K06042 K02224"
 
+defaultMultiDef = {
+    "Assimilatory_Sulfur_Reduction": Gph(Asr),
+    "Dissimilatory_Sulfur_Reduction": Gph(Dsr),
+    "Thiosulfate_Oxidation": Gph(TsO),
+    "Nitrogen_Fixation": Gph(Nif),
+    "Assimilatory_Nitrate_Reduction": Gph(Anr),
+    "Dissimilatory_Nitrate_Reduction": Gph(Dnr),
+    "Denitrification": Gph(Denitrification),
+    "Nitrification": Gph(Nitrification),
+    "Comammox": Gph(coammox),
+    "Anammox": Gph(anammox),
+    "Vit_B1": Gph(thiamin),
+    "Vit_B2":Gph(ribo),
+    "Vit_B7":Gph(biotin),
+    "Vit_B12_Aerobic":Gph(cob_aerobic),
+    "Vit_B12_Anaerobic": Gph(cob_anaerobic)
+    }
